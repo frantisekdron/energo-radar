@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Profil firmy — ENERGO RADAR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Stejné tokeny a písmo jako kokpit v2 (ZJEDNODUSENI.md kap. 6).
+   Stránka je statická, bez hesla, žádná data v ní nejsou — jen formulář. */
+:root{
+  --ground:#F3F6F6; --surface:#FFFFFF; --ink:#14212B; --muted:#5B6B73;
+  --line:#D5DEDF; --acc:#0F8B8D; --ok:#2E7D4F; --warn:#B7791F; --crit:#B23A3A;
+  --acc-soft:rgba(15,139,141,.10);
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+  --cond:'IBM Plex Sans Condensed','IBM Plex Sans',system-ui,Arial,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E1519; --surface:#16212A; --ink:#E6EEF0; --muted:#8FA1A8;
+    --line:#26343D; --acc:#3FB6B8; --ok:#4CA773; --warn:#D9A441; --crit:#E06B6B;
+    --acc-soft:rgba(63,182,184,.12);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E1519; --surface:#16212A; --ink:#E6EEF0; --muted:#8FA1A8;
+  --line:#26343D; --acc:#3FB6B8; --ok:#4CA773; --warn:#D9A441; --crit:#E06B6B;
+  --acc-soft:rgba(63,182,184,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:14px;
+  line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:var(--acc)}
+button,input,select,textarea{font:inherit;color:inherit}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+header{height:56px;background:var(--surface);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:40}
+header .wrap{height:56px;display:flex;align-items:center;gap:14px}
+.brand{font-family:var(--cond);font-weight:600;font-size:19px;letter-spacing:.4px;white-space:nowrap}
+.brand em{font-style:normal;color:var(--acc)}
+.sub{color:var(--muted);font-size:12px;white-space:nowrap}
+.hright{margin-left:auto;display:flex;align-items:center;gap:12px}
+.saved{font-size:11.5px;color:var(--ok);opacity:0;transition:opacity .2s;white-space:nowrap}
+.saved.on{opacity:1}
+.iconbtn{background:none;border:1px solid var(--line);border-radius:4px;color:var(--muted);
+  cursor:pointer;padding:5px 8px;font-size:11px;line-height:1}
+.iconbtn:hover{border-color:var(--acc);color:var(--acc)}
+
+.intro{padding:22px 0 6px}
+.intro h1{font-family:var(--cond);font-weight:600;font-size:26px;margin:0 0 6px;letter-spacing:.2px}
+.intro p{margin:0;color:var(--muted);max-width:74ch;font-size:13.5px}
+
+.cols{display:grid;grid-template-columns:236px 1fr;gap:28px;padding:22px 0 40px;align-items:start}
+/* levý sloupec s postupem */
+nav.steps{position:sticky;top:74px}
+nav.steps ol{list-style:none;margin:0;padding:0;counter-reset:s}
+nav.steps li{counter-increment:s}
+nav.steps a{display:flex;gap:9px;align-items:baseline;padding:5px 0;color:var(--muted);
+  text-decoration:none;font-size:12.5px;border-left:2px solid transparent;padding-left:10px}
+nav.steps a:hover{color:var(--ink)}
+nav.steps a.cur{color:var(--ink);border-left-color:var(--acc)}
+nav.steps a .no{font-family:var(--mono);font-size:11px;width:16px;flex:0 0 16px;
+  font-variant-numeric:tabular-nums}
+nav.steps a .tick{margin-left:auto;color:var(--ok);font-size:12px;opacity:0}
+nav.steps a.done .tick{opacity:1}
+.prog{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;font-size:12px;color:var(--muted)}
+.prog b{font-family:var(--cond);font-weight:600;color:var(--ink);font-size:15px}
+.progbar{height:4px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden}
+.progbar i{display:block;height:100%;background:var(--acc);width:0;transition:width .2s}
+
+/* bloky */
+section.blk{background:var(--surface);border:1px solid var(--line);border-radius:5px;
+  padding:18px 20px;margin-bottom:14px;scroll-margin-top:74px}
+section.blk>h2{font-family:var(--cond);font-weight:600;font-size:16px;margin:0;
+  display:flex;align-items:baseline;gap:9px}
+section.blk>h2 .no{font-family:var(--mono);font-size:12px;color:var(--acc);
+  font-variant-numeric:tabular-nums}
+.why{color:var(--muted);font-size:12.5px;margin:5px 0 14px;max-width:72ch}
+.why b{color:var(--ink);font-weight:500}
+.f{margin-bottom:12px}
+.f:last-child{margin-bottom:0}
+.f label{display:block;font-size:12.5px;margin-bottom:4px}
+.f .hint{color:var(--muted);font-size:11.5px;margin-top:3px}
+.f input[type=text],.f input[type=email],.f input[type=tel],.f input[type=url],.f textarea{
+  width:100%;background:var(--ground);border:1px solid var(--line);border-radius:4px;
+  padding:8px 10px;outline:none;font-size:13.5px}
+.f textarea{min-height:70px;resize:vertical;line-height:1.5}
+.f input:focus,.f textarea:focus{border-color:var(--acc);background:var(--surface)}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.krajgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:4px 12px}
+.krajgrid label{display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;
+  padding:3px 0;margin:0}
+.krajgrid input{accent-color:var(--acc);width:15px;height:15px}
+.refblk{border:1px solid var(--line);border-radius:4px;padding:12px 14px;margin-bottom:10px}
+.refblk>.rt{font-family:var(--cond);font-weight:600;font-size:12px;letter-spacing:.6px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+
+/* konec */
+.finish{background:var(--surface);border:1px solid var(--acc);border-left-width:3px;
+  border-radius:5px;padding:20px 22px;margin-top:6px}
+.finish h2{font-family:var(--cond);font-weight:600;font-size:19px;margin:0 0 6px}
+.finish p{margin:0 0 14px;color:var(--muted);font-size:13px;max-width:68ch}
+.acts{display:flex;flex-wrap:wrap;gap:10px}
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:9px 14px;
+  font-size:13px;cursor:pointer;white-space:nowrap;text-decoration:none;color:var(--ink);
+  display:inline-block}
+.btn:hover{border-color:var(--acc);color:var(--acc)}
+.btn.primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.btn.primary:hover{opacity:.9;color:#fff}
+.btn.ghost{border-style:dashed}
+
+#toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);z-index:90;
+  background:var(--ink);color:var(--ground);padding:10px 16px;border-radius:4px;font-size:13px;
+  max-width:calc(100% - 32px);text-align:center;opacity:0;pointer-events:none;
+  transition:opacity .16s,transform .16s;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:860px){
+  .cols{grid-template-columns:1fr;gap:6px}
+  nav.steps{position:static;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px}
+  nav.steps ol{display:flex;flex-wrap:wrap;gap:0 6px}
+  nav.steps a{border-left:0;border-bottom:2px solid transparent;padding:4px 4px 3px}
+  nav.steps a.cur{border-bottom-color:var(--acc)}
+  nav.steps a .tick{margin-left:3px}
+}
+@media (max-width:640px){
+  .wrap{padding:0 12px}
+  .f2,.f3{grid-template-columns:1fr}
+  .sub{display:none}
+  .intro h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">ENERGO <em>RADAR</em></div>
+    <div class="sub">profil firmy</div>
+    <div class="hright">
+      <span class="saved" id="saved">Uloženo</span>
+      <button class="iconbtn" id="theme" type="button" title="Světlý / tmavý režim">◐</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap intro">
+  <h1>Co přesně prodáváme</h1>
+  <p>Dvanáct bloků, zhruba patnáct minut. Odpovědi se průběžně ukládají do tohohle prohlížeče,
+    takže se můžete kdykoli vrátit. Nic se nikam neodesílá — na konci si soubor stáhnete
+    nebo pošlete e-mailem. Co nevíte přesně, napište odhadem a označte to; prázdné pole je
+    horší než přibližné číslo.</p>
+</div>
+
+<div class="wrap cols">
+  <nav class="steps" aria-label="Postup">
+    <ol id="toc"></ol>
+    <div class="prog">
+      <b id="pcount">0 / 12</b> bloků vyplněno
+      <div class="progbar"><i id="pbar"></i></div>
+    </div>
+  </nav>
+
+  <form id="form" autocomplete="off">
+
+    <section class="blk" id="b1" data-blk="firma">
+      <h2><span class="no">01</span> Firma a kontakt</h2>
+      <div class="why"><b>Proč se ptáme:</b> jméno, IČO a kontakt jdou do hlavičky každé nabídky
+        a do e-mailu, který za vás napíšeme.</div>
+      <div class="f2">
+        <div class="f"><label for="firma_nazev">Název firmy</label>
+          <input type="text" id="firma_nazev" name="firma.nazev"></div>
+        <div class="f"><label for="firma_ico">IČO</label>
+          <input type="text" id="firma_ico" name="firma.ico" inputmode="numeric"></div>
+      </div>
+      <div class="f"><label for="firma_web">Web</label>
+        <input type="url" id="firma_web" name="firma.web" placeholder="https://"></div>
+      <div class="f3">
+        <div class="f"><label for="firma_kontakt_jmeno">Kontaktní osoba</label>
+          <input type="text" id="firma_kontakt_jmeno" name="firma.kontakt_jmeno"></div>
+        <div class="f"><label for="firma_kontakt_email">E-mail</label>
+          <input type="email" id="firma_kontakt_email" name="firma.kontakt_email"></div>
+        <div class="f"><label for="firma_kontakt_telefon">Telefon</label>
+          <input type="tel" id="firma_kontakt_telefon" name="firma.kontakt_telefon"></div>
+      </div>
+      <div class="f"><label for="firma_barva">Firemní barva (hex, volitelné)</label>
+        <input type="text" id="firma_barva" name="firma.barva" placeholder="#0F8B8D">
+        <div class="hint">Použije se v PDF nabídky. Když nevíte, nechte prázdné.</div></div>
+    </section>
+
+    <section class="blk" id="b2" data-blk="co_prodavame">
+      <h2><span class="no">02</span> Co prodáváme</h2>
+      <div class="why"><b>Proč se ptáme:</b> nabídka musí jmenovat konkrétní zboží, ne „řešení
+        na míru". Bez značek a modelů z toho vyleze marketingová vata.</div>
+      <div class="f"><label for="cp_bess">BESS — bateriová úložiště</label>
+        <textarea id="cp_bess" name="co_prodavame.bess" placeholder="Rozsah kapacit, typ článků, střídače, na koho míříte."></textarea></div>
+      <div class="f"><label for="cp_ostrovni">Ostrovní systémy</label>
+        <textarea id="cp_ostrovni" name="co_prodavame.ostrovni" placeholder="Plně ostrovní / backup, typické výkony, k čemu slouží."></textarea></div>
+      <div class="f"><label for="cp_klima">Klimatizace a tepelná čerpadla</label>
+        <textarea id="cp_klima" name="co_prodavame.klima" placeholder="Split / multisplit / VRV, TČ vzduch-vzduch, chladivo a GWP."></textarea></div>
+      <div class="f"><label for="cp_znacky">Značky a modely, které dovážíte</label>
+        <textarea id="cp_znacky" name="co_prodavame.znacky" placeholder="Články / BMS / střídače / klima — konkrétně, včetně řad."></textarea></div>
+    </section>
+
+    <section class="blk" id="b3" data-blk="ceny_od">
+      <h2><span class="no">03</span> Ceny od</h2>
+      <div class="why"><b>Proč se ptáme:</b> bez cenového pásma nemůžeme počítat návratnost.
+        Stačí „od", ne ceník — a bez DPH, ať se to nemíchá.</div>
+      <div class="f3">
+        <div class="f"><label for="ce_bess">BESS — Kč/kWh instalovaných</label>
+          <input type="text" id="ce_bess" name="ceny_od.bess_kc_kwh" placeholder="např. 7 900"></div>
+        <div class="f"><label for="ce_klima">Klima — Kč/byt nebo Kč/jednotka</label>
+          <input type="text" id="ce_klima" name="ceny_od.klima_kc_byt"></div>
+        <div class="f"><label for="ce_ostrovni">Ostrovní — Kč/kW</label>
+          <input type="text" id="ce_ostrovni" name="ceny_od.ostrovni_kc_kw"></div>
+      </div>
+      <div class="f"><label for="ce_pozn">Co v ceně je a co ne</label>
+        <textarea id="ce_pozn" name="ceny_od.poznamka" placeholder="Montáž, doprava, revize, projekt, papíry na připojení… A jestli smíme cenu psát do nabídky."></textarea></div>
+    </section>
+
+    <section class="blk" id="b4" data-blk="sklad_a_dodani">
+      <h2><span class="no">04</span> Sklad a dodání</h2>
+      <div class="why"><b>Proč se ptáme:</b> u dotačních výzev je termín realizace tvrdá
+        podmínka. „Máme skladem v ČR" je prodejní argument, který konkurence nemá.</div>
+      <div class="f2">
+        <div class="f"><label for="sk_cr">Skladová zásoba v ČR</label>
+          <input type="text" id="sk_cr" name="sklad_a_dodani.sklad_cr" placeholder="kolik kWh BESS / kolik klimatizací"></div>
+        <div class="f"><label for="sk_lhuta">Běžná dodací lhůta</label>
+          <input type="text" id="sk_lhuta" name="sklad_a_dodani.dodaci_lhuta" placeholder="ze skladu × na objednávku z Číny"></div>
+      </div>
+      <div class="f"><label for="sk_pozn">Co děláte, když se termín posune</label>
+        <textarea id="sk_pozn" name="sklad_a_dodani.poznamka"></textarea></div>
+    </section>
+
+    <section class="blk" id="b5" data-blk="zaruka_servis">
+      <h2><span class="no">05</span> Záruka a servis</h2>
+      <div class="why"><b>Proč se ptáme:</b> u baterie za miliony je záruka a servis polovina
+        rozhodnutí. Zvlášť u obcí, které to musí obhájit zastupitelstvu.</div>
+      <div class="f2">
+        <div class="f"><label for="za_roky">Záruka v letech</label>
+          <input type="text" id="za_roky" name="zaruka_servis.zaruka_roky"></div>
+        <div class="f"><label for="za_soh">Garantovaný SOH (a po kolika cyklech)</label>
+          <input type="text" id="za_soh" name="zaruka_servis.soh_garance" placeholder="např. 70 % po 6 000 cyklech"></div>
+      </div>
+      <div class="f"><label for="za_sla">Servisní SLA</label>
+        <textarea id="za_sla" name="zaruka_servis.sla" placeholder="Reakční doba, dojezd, náhradní díly na skladě."></textarea></div>
+      <div class="f"><label for="za_kde">Kdo servisuje</label>
+        <input type="text" id="za_kde" name="zaruka_servis.servis_kde" placeholder="vlastní technici / partner / výrobce"></div>
+    </section>
+
+    <section class="blk" id="b6" data-blk="data_a_cloud">
+      <h2><span class="no">06</span> Data a cloud</h2>
+      <div class="why"><b>Proč se ptáme:</b> NÚKIB řeší vzdálenou správu střídačů mimo EU.
+        Když umíte běžet bez cloudu výrobce, je to náš nejsilnější argument — ale musí to být pravda.</div>
+      <div class="f"><label for="dc_kde">Kde fyzicky leží data z instalací a kdo k nim má přístup</label>
+        <textarea id="dc_kde" name="data_a_cloud.kde_lezi_data"></textarea></div>
+      <div class="f"><label for="dc_bez">Běží střídače a BMS bez připojení do cloudu výrobce?</label>
+        <textarea id="dc_bez" name="data_a_cloud.bez_cloudu" placeholder="Začněte slovem Ano / Ne a pak napište, co přesně přestane fungovat, když se cloud odpojí."></textarea>
+        <div class="hint">Větu „běží bez cloudu výrobce“ smíme do nabídky napsat, jen když tahle
+          odpověď začíná slovem <b>Ano</b>. Jinak do nabídky půjde jen popis, kde data leží.</div></div>
+      <div class="f"><label for="dc_pozn">Lokální nebo EU řízení — máte, nebo chystáte?</label>
+        <textarea id="dc_pozn" name="data_a_cloud.poznamka"></textarea></div>
+    </section>
+
+    <section class="blk" id="b7" data-blk="reference">
+      <h2><span class="no">07</span> Reference</h2>
+      <div class="why"><b>Proč se ptáme:</b> jedna vlastní reference s čísly přebije deset
+        obecných vět. U veřejných zakázek je to navíc kvalifikační podmínka.</div>
+      <div id="refs"></div>
+    </section>
+
+    <section class="blk" id="b8" data-blk="kapacita_a_kraje">
+      <h2><span class="no">08</span> Kapacita a kraje</h2>
+      <div class="why"><b>Proč se ptáme:</b> podle krajů radar upřednostní leady, na které
+        reálně dosáhnete. Kapacita nám řekne, kolik nabídek má smysl posílat.</div>
+      <div class="f2">
+        <div class="f"><label for="kk_mes">Instalací měsíčně (reálně zvládnete)</label>
+          <input type="text" id="kk_mes" name="kapacita_a_kraje.instalaci_mesicne"></div>
+        <div class="f"><label for="kk_tym">Montážní tým</label>
+          <input type="text" id="kk_tym" name="kapacita_a_kraje.montazni_tym" placeholder="vlastní / partner, kolik lidí"></div>
+      </div>
+      <div class="f"><label>Kraje, kde působíte</label>
+        <div class="krajgrid" id="kraje"></div></div>
+      <div class="f"><label for="kk_hrdlo">Kde je úzké hrdlo</label>
+        <input type="text" id="kk_hrdlo" name="kapacita_a_kraje.uzke_hrdlo" placeholder="lidé / sklad / papíry / distributor"></div>
+    </section>
+
+    <section class="blk" id="b9" data-blk="dotace_a_papiry">
+      <h2><span class="no">09</span> Dotace a papíry</h2>
+      <div class="why"><b>Proč se ptáme:</b> „žádost vyřídíme za vás" je u obcí a SVJ často
+        rozhodující. A do veřejné zakázky se bez certifikací nedá jít.</div>
+      <div class="f2">
+        <div class="f"><label for="dp_kdo">Kdo dělá dotační žádosti</label>
+          <input type="text" id="dp_kdo" name="dotace_a_papiry.kdo_dela_zadosti" placeholder="my / externí poradce / žadatel sám"></div>
+        <div class="f"><label for="dp_pocet">Kolik žádostí ročně zvládnete</label>
+          <input type="text" id="dp_pocet" name="dotace_a_papiry.zadosti_rocne"></div>
+      </div>
+      <div class="f"><label for="dp_cert">Certifikace</label>
+        <textarea id="dp_cert" name="dotace_a_papiry.certifikace" placeholder="F-plyny (kategorie, platnost), elektro §, licence ERÚ, PPDS, ISO…"></textarea></div>
+      <div class="f"><label for="dp_ce">CE a technická dokumentace k dováženému zboží</label>
+        <textarea id="dp_ce" name="dotace_a_papiry.ce_dokumentace" placeholder="Kdo ji vydává, kdo je dovozce, kde je uložená."></textarea></div>
+    </section>
+
+    <section class="blk" id="b10" data-blk="v_cem_jsme_nejlepsi">
+      <h2><span class="no">10</span> V čem jsme nejlepší</h2>
+      <div class="why"><b>Proč se ptáme:</b> tohle je jediná věta, kterou si zákazník
+        z nabídky zapamatuje. Musí být vaše a musí být dokazatelná.</div>
+      <div class="f"><label for="nl_teze">Co umíte prokazatelně líp než kdokoli v oboru</label>
+        <textarea id="nl_teze" name="v_cem_jsme_nejlepsi.teze"></textarea></div>
+      <div class="f"><label for="nl_dukaz">Čím to doložíte</label>
+        <textarea id="nl_dukaz" name="v_cem_jsme_nejlepsi.dukaz" placeholder="Číslo, měření, reference, certifikát."></textarea></div>
+      <div class="f"><label for="nl_chvali">Na co si vás zákazníci chválí — jejich slovy</label>
+        <textarea id="nl_chvali" name="v_cem_jsme_nejlepsi.chvali_nas_za"></textarea></div>
+    </section>
+
+    <section class="blk" id="b11" data-blk="obchod_a_partneri">
+      <h2><span class="no">11</span> Obchod a partneři</h2>
+      <div class="why"><b>Proč se ptáme:</b> podle typického zákazníka a velikosti zakázky
+        radar leady třídí. Bez toho posíláme nabídky komukoli.</div>
+      <div class="f2">
+        <div class="f"><label for="op_zak">Typický zákazník</label>
+          <input type="text" id="op_zak" name="obchod_a_partneri.typicky_zakaznik" placeholder="velikost, obor, kraj"></div>
+        <div class="f"><label for="op_zakazka">Průměrná zakázka (Kč)</label>
+          <input type="text" id="op_zakazka" name="obchod_a_partneri.prumerna_zakazka"></div>
+      </div>
+      <div class="f"><label for="op_cyklus">Prodejní cyklus — jak dlouho a kde uvázne</label>
+        <textarea id="op_cyklus" name="obchod_a_partneri.prodejni_cyklus"></textarea></div>
+      <div class="f"><label for="op_sit">Partnerská síť</label>
+        <textarea id="op_sit" name="obchod_a_partneri.partnerska_sit" placeholder="Elektrikáři, montážní firmy, projektanti — máte, chcete stavět, jaká provize?"></textarea></div>
+    </section>
+
+    <section class="blk" id="b12" data-blk="co_nedelame">
+      <h2><span class="no">12</span> Co neděláme</h2>
+      <div class="why"><b>Proč se ptáme:</b> nejdražší zakázka je ta, kterou jste neměli vzít.
+        Tenhle blok drží nabídky uvnitř toho, co umíte.</div>
+      <div class="f"><label for="cn_text">Kde je hranice</label>
+        <textarea id="cn_text" name="co_nedelame.text" placeholder="Co zásadně neděláme, jakou zakázku odmítáme, co si netroufneme slíbit."></textarea></div>
+    </section>
+
+    <div class="finish">
+      <h2>Hotovo</h2>
+      <p>Stáhněte si soubor a pošlete nám ho — nebo použijte tlačítko e-mailu.
+        Soubor se jmenuje <span class="mono">profil.json</span> a načteme ho příkazem
+        <span class="mono">energoradar profil-import</span>. Odpovědi zůstávají uložené
+        v tomhle prohlížeči, takže se sem můžete kdykoli vrátit a doplnit je.</p>
+      <div class="acts">
+        <button class="btn primary" id="a-down" type="button">Hotovo → stáhnout profil.json</button>
+        <button class="btn" id="a-mail" type="button">Poslat e-mailem</button>
+        <button class="btn" id="a-copy" type="button">Zkopírovat JSON</button>
+        <button class="btn ghost" id="a-clear" type="button">Vymazat vše</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+function $(s,r){return (r||document).querySelector(s);}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+var LS='er.profil.v1', LS_THEME='er.theme.v2', TZ='Europe/Prague';
+var KRAJE=['Praha','Středočeský','Jihočeský','Plzeňský','Karlovarský','Ústecký','Liberecký',
+  'Královéhradecký','Pardubický','Vysočina','Jihomoravský','Olomoucký','Zlínský','Moravskoslezský'];
+var REF_FIELDS=[['klient','Klient'],['kde','Kde'],['co','Co jsme dodali'],
+  ['vykon','Výkon / kapacita'],['rok','Rok'],['zverejnit','Smíme zveřejnit? (ano / jen anonymně / ne)']];
+var BLOCKS=[
+  ['b1','Firma a kontakt'],['b2','Co prodáváme'],['b3','Ceny od'],['b4','Sklad a dodání'],
+  ['b5','Záruka a servis'],['b6','Data a cloud'],['b7','Reference'],['b8','Kapacita a kraje'],
+  ['b9','Dotace a papíry'],['b10','V čem jsme nejlepší'],['b11','Obchod a partneři'],
+  ['b12','Co neděláme']
+];
+
+/* ---------- téma ---------- */
+function applyTheme(){
+  var t=null;try{t=JSON.parse(localStorage.getItem(LS_THEME));}catch(e){}
+  if(t) document.documentElement.setAttribute('data-theme',t);
+  else document.documentElement.removeAttribute('data-theme');
+}
+$('#theme').onclick=function(){
+  var cur=document.documentElement.getAttribute('data-theme');
+  var dark=window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
+  var next=cur?(cur==='dark'?'light':'dark'):(dark?'light':'dark');
+  try{localStorage.setItem(LS_THEME,JSON.stringify(next));}catch(e){}
+  applyTheme();
+};
+applyTheme();
+
+/* ---------- postup vlevo ---------- */
+$('#toc').innerHTML=BLOCKS.map(function(b,i){
+  return '<li><a href="#'+b[0]+'" data-b="'+b[0]+'"><span class="no">'+
+    (i+1<10?'0':'')+(i+1)+'</span><span>'+esc(b[1])+'</span><span class="tick">✓</span></a></li>';
+}).join('');
+
+/* ---------- 14 krajů ---------- */
+$('#kraje').innerHTML=KRAJE.map(function(k,i){
+  return '<label><input type="checkbox" data-kraj="'+esc(k)+'" id="kraj'+i+'"><span>'+esc(k)+'</span></label>';
+}).join('');
+
+/* ---------- 3 opakovatelné reference ---------- */
+$('#refs').innerHTML=[0,1,2].map(function(i){
+  return '<div class="refblk"><div class="rt">Reference '+(i+1)+
+    (i?' <span style="font-weight:400;text-transform:none;letter-spacing:0">(volitelná)</span>':'')+'</div>'+
+    '<div class="f2">'+REF_FIELDS.slice(0,2).map(function(f){
+      return '<div class="f"><label for="ref'+i+'_'+f[0]+'">'+esc(f[1])+'</label>'+
+        '<input type="text" id="ref'+i+'_'+f[0]+'" data-ref="'+i+'" data-rf="'+f[0]+'"></div>';
+    }).join('')+'</div>'+
+    '<div class="f"><label for="ref'+i+'_co">Co jsme dodali</label>'+
+      '<textarea id="ref'+i+'_co" data-ref="'+i+'" data-rf="co"></textarea></div>'+
+    '<div class="f3">'+REF_FIELDS.slice(3).map(function(f){
+      return '<div class="f"><label for="ref'+i+'_'+f[0]+'">'+esc(f[1])+'</label>'+
+        '<input type="text" id="ref'+i+'_'+f[0]+'" data-ref="'+i+'" data-rf="'+f[0]+'"></div>';
+    }).join('')+'</div></div>';
+}).join('');
+
+/* ---------- model ---------- */
+function fields(){return $$('#form [name]');}
+function collect(){
+  var o={verze:'1.0',vyplneno:new Date().toISOString()};
+  fields().forEach(function(el){
+    var p=el.getAttribute('name').split('.');
+    if(!o[p[0]]) o[p[0]]={};
+    o[p[0]][p[1]]=el.value.trim();
+  });
+  o.kapacita_a_kraje=o.kapacita_a_kraje||{};
+  o.kapacita_a_kraje.kraje=$$('#kraje input:checked').map(function(c){
+    return c.getAttribute('data-kraj');});
+  o.reference=[0,1,2].map(function(i){
+    var r={};
+    REF_FIELDS.forEach(function(f){
+      var el=$('#ref'+i+'_'+f[0]);
+      r[f[0]]=el?el.value.trim():'';
+    });
+    return r;
+  });
+  return o;
+}
+function apply(o){
+  if(!o||typeof o!=='object') return;
+  fields().forEach(function(el){
+    var p=el.getAttribute('name').split('.');
+    var v=o[p[0]]&&o[p[0]][p[1]];
+    if(typeof v==='string') el.value=v;
+  });
+  var kr=(o.kapacita_a_kraje&&o.kapacita_a_kraje.kraje)||[];
+  $$('#kraje input').forEach(function(c){
+    c.checked=kr.indexOf(c.getAttribute('data-kraj'))>=0;});
+  (Array.isArray(o.reference)?o.reference:[]).forEach(function(r,i){
+    if(i>2||!r) return;
+    REF_FIELDS.forEach(function(f){
+      var el=$('#ref'+i+'_'+f[0]);
+      if(el&&typeof r[f[0]]==='string') el.value=r[f[0]];
+    });
+  });
+}
+function blockDone(id){
+  var sec=$('#'+id);
+  var ins=$$('input[type=text],input[type=email],input[type=tel],input[type=url],textarea',sec);
+  var filled=ins.filter(function(e){return e.value.trim()!=='';}).length;
+  var checks=$$('input[type=checkbox]:checked',sec).length;
+  if(id==='b8') return filled>0&&checks>0;
+  if(id==='b7') return $('#ref0_klient').value.trim()!=='';
+  return filled>0;
+}
+
+/* ---------- autosave ---------- */
+var savedT=null, saveT=null;
+function flashSaved(){
+  var e=$('#saved');
+  var t='—';
+  try{t=new Intl.DateTimeFormat('cs-CZ',{timeZone:TZ,hour:'2-digit',minute:'2-digit'}).format(new Date());}
+  catch(err){t=new Date().toTimeString().slice(0,5);}
+  e.textContent='Uloženo '+t;
+  e.classList.add('on');
+  clearTimeout(savedT);
+  savedT=setTimeout(function(){e.classList.remove('on');},2600);
+}
+function save(){
+  try{localStorage.setItem(LS,JSON.stringify(collect()));}catch(e){}
+  flashSaved();
+  progress();
+}
+function queueSave(){clearTimeout(saveT);saveT=setTimeout(save,350);}
+function progress(){
+  var done=0;
+  BLOCKS.forEach(function(b){
+    var ok=blockDone(b[0]);
+    if(ok) done++;
+    var a=$('#toc a[data-b="'+b[0]+'"]');
+    if(a) a.classList.toggle('done',ok);
+  });
+  $('#pcount').textContent=done+' / '+BLOCKS.length;
+  $('#pbar').style.width=Math.round(done/BLOCKS.length*100)+'%';
+}
+
+/* ---------- akce ---------- */
+function json(){return JSON.stringify(collect(),null,2);}
+function download(name,mime,text){
+  try{
+    var b=new Blob([text],{type:mime}),u=URL.createObjectURL(b),a=document.createElement('a');
+    a.href=u;a.download=name;document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(u);a.remove();},400);
+  }catch(e){toast('Stažení se nepovedlo: '+e.message);}
+}
+var toastT=null;
+function toast(m){
+  var e=$('#toast');e.textContent=m;e.classList.add('on');
+  clearTimeout(toastT);toastT=setTimeout(function(){e.classList.remove('on');},3200);
+}
+$('#a-down').onclick=function(){save();download('profil.json','application/json',json());
+  toast('Staženo. Pošlete nám prosím soubor profil.json.');};
+$('#a-copy').onclick=function(){
+  var t=json();
+  var ok=function(){toast('JSON zkopírován do schránky.');};
+  var no=function(){
+    try{
+      var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';
+      ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+      document.execCommand('copy');ta.remove();ok();
+    }catch(e){toast('Kopírování se nepovedlo — použijte stažení souboru.');}
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(t).then(ok).catch(no);
+  else no();
+};
+$('#a-mail').onclick=function(){
+  save();
+  var t=json(), subj='Profil ENERGO RADAR', body;
+  // Delší JSON se do mailto: nevejde (Gmail/Outlook seká URL) — pak jen pokyn přiložit soubor.
+  if(t.length>1500){
+    body='Dobrý den,\n\nposílám vyplněný profil firmy pro ENERGO RADAR.\n'+
+      'Soubor profil.json je delší, než se vejde do těla odkazu — přiložte prosím '+
+      'stažený soubor (tlačítko „Hotovo → stáhnout profil.json“) jako přílohu.\n';
+  }else{
+    body='Dobrý den,\n\nposílám vyplněný profil firmy pro ENERGO RADAR.\n\n'+t+'\n';
+  }
+  location.href='mailto:frantisekdron@gmail.com?subject='+encodeURIComponent(subj)+
+    '&body='+encodeURIComponent(body);
+};
+$('#a-clear').onclick=function(){
+  if(!confirm('Opravdu vymazat všechny vyplněné odpovědi z tohohle prohlížeče?')) return;
+  try{localStorage.removeItem(LS);}catch(e){}
+  fields().forEach(function(e){e.value='';});
+  $$('#kraje input').forEach(function(c){c.checked=false;});
+  $$('#refs input, #refs textarea').forEach(function(e){e.value='';});
+  progress();toast('Vymazáno.');
+};
+
+/* ---------- zvýraznění bloku v postupu ---------- */
+function markCurrent(){
+  var best=null, bd=1e9;
+  BLOCKS.forEach(function(b){
+    var el=$('#'+b[0]);
+    if(!el) return;
+    var d=Math.abs(el.getBoundingClientRect().top-90);
+    if(d<bd){bd=d;best=b[0];}
+  });
+  $$('#toc a').forEach(function(a){a.classList.toggle('cur',a.getAttribute('data-b')===best);});
+}
+
+/* ---------- start ---------- */
+(function init(){
+  var raw=null;
+  try{raw=localStorage.getItem(LS);}catch(e){}
+  if(raw){try{apply(JSON.parse(raw));}catch(e){}}
+  $('#form').addEventListener('input',queueSave);
+  $('#form').addEventListener('change',queueSave);
+  $('#form').addEventListener('submit',function(e){e.preventDefault();});
+  window.addEventListener('scroll',markCurrent,{passive:true});
+  progress();markCurrent();
+})();
+})();
+</script>
+</body>
+</html>
